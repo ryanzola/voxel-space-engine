@@ -1,0 +1,75 @@
+# .gitignore
+
+# Object files
+*.o
+*.lo
+*.la
+*.obj
+
+# Libraries
+*.lib
+*.a
+*.dll
+*.dylib
+*.so
+
+# Executables
+*.exe
+*.out
+*.app
+*.elf
+
+# Compiled files
+*.s
+*.c~
+*.h~
+
+# Build directories
+build/
+Debug/
+Release/
+bin/
+obj/
+dist/
+deps/
+
+# IDE / Editor files
+.vs/
+.vscode/
+*.suo
+*.sdf
+*.db
+*.bak
+*.log
+*.ncb
+*.opensdf
+*.slnx.sqlite
+*.suo
+*.user
+*.proj
+*.csproj.user
+*.pidb
+*.userprefs
+
+# SDL specific files
+SDL2/
+*.bmp
+*.wav
+*.ttf
+*.jpg
+*.png
+
+# macOS files
+.DS_Store
+*.swp
+*.swm
+*.swn
+*.swo
+
+# Other
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
