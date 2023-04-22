@@ -11,10 +11,20 @@ int main(int argc, char* args[]) {
   setvideomode(videomode_320x200);
 
   setdoublebuffer(1);
+
+  // create a frame buffer.
+  // screenbuffer returns a frame buffer in memeory.
+  // pointer to a buffer in memory that has all the pixel colors of the screen.
+  // each position is 8 bits.
+  // 320x200 = 64000 pixels
   uint8_t* framebuffer = screenbuffer();
 
+  // game loop
   while(!shuttingdown()) {
+    // wait for a blank frame
     waitvbl();
+
+    // clear the screen
     clearscreen();
 
     // TODO:
@@ -22,6 +32,7 @@ int main(int argc, char* args[]) {
     // - update()
     // - render()
 
+    // copy everything from the back buffer to the front buffer
     framebuffer = swapbuffers();
 
     if(keystate(KEY_ESCAPE)) {
@@ -29,5 +40,6 @@ int main(int argc, char* args[]) {
     }
   }
 
-  return 0;
+  // i'm a modern c programmer, i return EXIT_SUCCESS instead of 0
+  return EXIT_SUCCESS;
 }
