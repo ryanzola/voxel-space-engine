@@ -16,7 +16,7 @@ typedef struct {
 camera_t camera = { 
   .x = 512, 
   .y = 512, 
-  .zfar = 4
+  .zfar = 400
 };
 
 // buffers for hight map and color map
@@ -74,7 +74,7 @@ int main(int argc, char* args[]) {
 
       for(int z = 1; z < camera.zfar; z++) {
         ray_x += delta_x;
-        ray_y += delta_y;
+        ray_y -= delta_y;
 
         framebuffer[(SCREEN_WIDTH * (int)(ray_y / 4)) + (int)(ray_x / 4)] = 0x19;
       }
