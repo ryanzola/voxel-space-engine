@@ -72,11 +72,31 @@ int main(int argc, char* args[]) {
       float ray_x = camera.x;
       float ray_y = camera.y;
 
+      float max_height = SCREEN_HEIGHT;
+
       for(int z = 1; z < camera.zfar; z++) {
         ray_x += delta_x;
         ray_y -= delta_y;
 
-        framebuffer[(SCREEN_WIDTH * (int)(ray_y / 4)) + (int)(ray_x / 4)] = 0x19;
+        // find the offset to translate to and fetch the heightmap value
+        int mapoffset = (1024 * (int)ray_y) + (int)ray_x;
+
+        // project the height and find the height on the screen
+        // perspective divide: projection = height / z
+        int heightonscreen = (int)((100.0 - heightmap[mapoffset]) / z * 100.0);
+
+        if(heightonscreen < 0) heightonscreen = 0;
+        if(heightonscreen > SCREEN_HEIGHT) heightonscreen = SCREEN_HEIGHT - 1;
+
+        // only render the terrain pixels if the new projected height is taller than the previous max height
+        if(heightonscreen < max_height) {
+          // draw pixels from previous max height until the new max height
+          for(int y = heightonscreen; y < max_height; y++) {
+            framebuffer[(SCREEN_WIDTH * y) + i] = (uint8_t)colormap[mapoffset];
+          }
+
+          max_height = heightonscreen;
+        }
       }
     }
 
