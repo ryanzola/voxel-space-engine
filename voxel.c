@@ -7,6 +7,18 @@
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 200
 
+typedef struct {
+  float x;    // x position
+  float y;    // y position
+  float zfar; // distance of the camera looking forward
+} camera_t;
+
+camera_t camera = { 
+  .x = 512, 
+  .y = 512, 
+  .zfar = 4
+};
+
 // buffers for hight map and color map
 uint8_t* heightmap = NULL;    // buffer/array to hold heighmap information 1024x1024
 uint8_t* colormap = NULL;     // buffer/array to hold color information 1024x1024
@@ -44,14 +56,29 @@ int main(int argc, char* args[]) {
     // clear the screen
     clearscreen();
 
-    // TODO:
-    // - processinput()
-    // - update()
-    // - render()
+    // voxels space magic
+    float plx = -camera.zfar;
+    float ply = camera.zfar; 
 
-    int x = 160;
-    int y = 100;
-    framebuffer[(SCREEN_WIDTH * y) + x] = 0x50;
+    float prx = camera.zfar;
+    float pry = camera.zfar;
+
+    // loop 320 times to find the 320 rays
+    // left to right
+    for(int i = 0; i < SCREEN_WIDTH; i++) {
+      float delta_x = (plx + (prx - plx) / SCREEN_WIDTH * i) / camera.zfar;
+      float delta_y = (ply + (pry - ply) / SCREEN_WIDTH * i) / camera.zfar;
+
+      float ray_x = camera.x;
+      float ray_y = camera.y;
+
+      for(int z = 1; z < camera.zfar; z++) {
+        ray_x += delta_x;
+        ray_y += delta_y;
+
+        framebuffer[(SCREEN_WIDTH * (int)(ray_y / 4)) + (int)(ray_x / 4)] = 0x19;
+      }
+    }
 
     // copy everything from the back buffer to the front buffer
     framebuffer = swapbuffers();

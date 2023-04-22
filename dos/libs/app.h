@@ -1,14 +1,14 @@
-//
-// ------------------------------------------------------------------------------
-//           Licensing information can be found at the end of the file.
-// ------------------------------------------------------------------------------
+/*
+------------------------------------------------------------------------------
+          Licensing information can be found at the end of the file.
+------------------------------------------------------------------------------
 
-// app.h - v0.4 - Small cross-platform base framework for graphical apps.
+app.h - v0.4 - Small cross-platform base framework for graphical apps.
 
-// Do this:
-//     #define APP_IMPLEMENTATION
-// before you include this file in *one* C/C++ file to create the implementation.
-//
+Do this:
+    #define APP_IMPLEMENTATION
+before you include this file in *one* C/C++ file to create the implementation.
+*/
 
 
 #ifndef app_h

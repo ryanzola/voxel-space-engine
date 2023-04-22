@@ -1,14 +1,14 @@
-//
-// ------------------------------------------------------------------------------
-//           Licensing information can be found at the end of the file.
-// ------------------------------------------------------------------------------
+/*
+------------------------------------------------------------------------------
+          Licensing information can be found at the end of the file.
+------------------------------------------------------------------------------
 
-// crtemu_pc.h - v0.1 - Cathode ray tube emulation shader for C/C++.
+crtemu_pc.h - v0.1 - Cathode ray tube emulation shader for C/C++.
 
-// Do this:
-//     #define CRTEMU_PC_IMPLEMENTATION
-// before you include this file in *one* C/C++ file to create the implementation.
-//
+Do this:
+    #define CRTEMU_PC_IMPLEMENTATION
+before you include this file in *one* C/C++ file to create the implementation.
+*/
 
 
 #ifndef crtemu_pc_h
