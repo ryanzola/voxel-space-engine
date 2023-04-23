@@ -6,22 +6,46 @@
 
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 200
+#define SCALE_FACTOR 100
 
 typedef struct {
   float x;    // x position
   float y;    // y position
+  float height; // height of the camera
   float zfar; // distance of the camera looking forward
 } camera_t;
 
 camera_t camera = { 
   .x = 512, 
-  .y = 512, 
+  .y = 512,
+  .height = 150,
   .zfar = 400
 };
 
 // buffers for hight map and color map
 uint8_t* heightmap = NULL;    // buffer/array to hold heighmap information 1024x1024
 uint8_t* colormap = NULL;     // buffer/array to hold color information 1024x1024
+
+void process_input() {
+  if(keystate(KEY_UP)) {
+    camera.y++;
+  }
+  if(keystate(KEY_DOWN)) {
+    camera.y--;
+  }
+  if(keystate(KEY_LEFT)) {
+    camera.x--;
+  }
+  if(keystate(KEY_RIGHT)) {
+    camera.x++;
+  }
+  if(keystate(KEY_E)) {
+    camera.height++;
+  }
+  if(keystate(KEY_D)) {
+    camera.height--;
+  }
+}
 
 int main(int argc, char* args[]) {
   setvideomode(videomode_320x200);
@@ -56,6 +80,9 @@ int main(int argc, char* args[]) {
     // clear the screen
     clearscreen();
 
+    // process input
+    process_input();
+
     // voxels space magic
     float plx = -camera.zfar;
     float ply = camera.zfar; 
@@ -76,14 +103,14 @@ int main(int argc, char* args[]) {
 
       for(int z = 1; z < camera.zfar; z++) {
         ray_x += delta_x;
-        ray_y -= delta_y;
+        ray_y += delta_y;
 
         // find the offset to translate to and fetch the heightmap value
-        int mapoffset = (1024 * (int)ray_y) + (int)ray_x;
+        int mapoffset = ((1024 * ((int)ray_y & 1023)) + ((int)ray_x & 1023));
 
         // project the height and find the height on the screen
         // perspective divide: projection = height / z
-        int heightonscreen = (int)((100.0 - heightmap[mapoffset]) / z * 100.0);
+        int heightonscreen = (int)((camera.height - heightmap[mapoffset]) / z * SCALE_FACTOR);
 
         if(heightonscreen < 0) heightonscreen = 0;
         if(heightonscreen > SCREEN_HEIGHT) heightonscreen = SCREEN_HEIGHT - 1;
