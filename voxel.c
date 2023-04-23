@@ -7,12 +7,16 @@
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 200
 #define SCALE_FACTOR 100
+#define MAX_VELOCITY 4.0
 
 typedef struct {
   float x;      // x position
   float y;      // y position
   float height; // height of the camera
   float angle;  // angle of the camera (radians, clockwise)
+  float horizon; // offset the horizon position (look up/down)
+  float velocity; // velocity of the camera
+  float tilt;   // tilt the camera left/right
   float zfar;   // distance of the camera looking forward
 } camera_t;
 
@@ -21,6 +25,9 @@ camera_t camera = {
   .y = 512.0,
   .height = 150.0,
   .angle   = 1.5 * 3.141592, // (= 270 deg)
+  .horizon = 100.0,
+  .velocity = 0.0,
+  .tilt = 0.0,
   .zfar = 600.0
 };
 
@@ -28,26 +35,77 @@ camera_t camera = {
 uint8_t* heightmap = NULL;    // buffer/array to hold heighmap information 1024x1024
 uint8_t* colormap = NULL;     // buffer/array to hold color information 1024x1024
 
+// lerp function
+// a = start value
+// b = end value
+// t = time
+float lerp(float a, float b, float t) {
+  return a + (b - a) * t;
+}
+
 void process_input() {
   if(keystate(KEY_UP)) {
-    camera.x += cos(camera.angle);
-    camera.y += sin(camera.angle);
+    // increment velocity
+    camera.velocity = lerp(camera.velocity, MAX_VELOCITY, 0.01);
+
+    // cap the velocity
+    if(camera.velocity > MAX_VELOCITY) {
+      camera.velocity = MAX_VELOCITY;
+    }
   }
   if(keystate(KEY_DOWN)) {
-    camera.x -= cos(camera.angle);
-    camera.y -= sin(camera.angle);
+    // increment velocity
+    camera.velocity = lerp(camera.velocity, -MAX_VELOCITY, 0.01);
+
+    // cap the velocity
+    if(camera.velocity < -MAX_VELOCITY) {
+      camera.velocity = -MAX_VELOCITY;
+    }
   }
   if(keystate(KEY_LEFT)) {
     camera.angle -= 0.01;
+    if(camera.tilt < 1.0) {
+      // lerp from 0 to 1.0
+      camera.tilt = lerp(camera.tilt, 1.0, 0.1);
+    }
   }
   if(keystate(KEY_RIGHT)) {
     camera.angle += 0.01;
+    if(camera.tilt > -1.0) {
+      // lerp from 0 to -1.0
+      camera.tilt = lerp(camera.tilt, -1.0, 0.1);
+    }
   }
   if(keystate(KEY_E)) {
     camera.height++;
   }
   if(keystate(KEY_D)) {
     camera.height--;
+  }
+  if(keystate(KEY_Q)) {
+    camera.horizon += 1.5f;
+  }
+  if(keystate(KEY_W)) {
+    camera.horizon -= 1.5f;
+  }
+
+    // apply velocity to camera position
+    camera.x += cos(camera.angle) * camera.velocity;
+    camera.y += sin(camera.angle) * camera.velocity;
+
+  // tilt the camera back to 0
+  if(!keystate(KEY_LEFT) && !keystate(KEY_RIGHT)) {
+    camera.tilt = lerp(camera.tilt, 0.0, 0.1);
+  }
+
+  // apply friction to the velocity
+  if(!keystate(KEY_UP) && !keystate(KEY_DOWN)) {
+      if(camera.velocity == 0.0) {
+        return;
+      }
+
+      // slow down the camera velocity until it reaches 0
+      camera.velocity = lerp(camera.velocity, 0.0, 0.001);
   }
 }
 
@@ -117,19 +175,24 @@ int main(int argc, char* args[]) {
 
         // project the height and find the height on the screen
         // perspective divide: projection = height / z
-        int heightonscreen = (int)((camera.height - heightmap[mapoffset]) / z * SCALE_FACTOR);
+        int proj_height = (int)((camera.height - heightmap[mapoffset]) / z * SCALE_FACTOR + camera.horizon);
 
-        if(heightonscreen < 0) heightonscreen = 0;
-        if(heightonscreen > SCREEN_HEIGHT) heightonscreen = SCREEN_HEIGHT - 1;
+        if(proj_height < 0) proj_height = 0;
+        if(proj_height > SCREEN_HEIGHT) proj_height = SCREEN_HEIGHT - 1;
 
         // only render the terrain pixels if the new projected height is taller than the previous max height
-        if(heightonscreen < max_height) {
+        if(proj_height < max_height) {
+          // compute a "lean" offset to simulate rolling the camera left and right
+          float lean = (camera.tilt * (i / (float)SCREEN_WIDTH - 0.5) + 0.5) * SCREEN_HEIGHT / 6;
+
           // draw pixels from previous max height until the new max height
-          for(int y = heightonscreen; y < max_height; y++) {
-            framebuffer[(SCREEN_WIDTH * y) + i] = (uint8_t)colormap[mapoffset];
+          for(int y = (proj_height + lean); y < (max_height + lean); y++) {
+            if(y >= 0) {
+              framebuffer[(SCREEN_WIDTH * y) + i] = (uint8_t)colormap[mapoffset];
+            }
           }
 
-          max_height = heightonscreen;
+          max_height = proj_height;
         }
       }
     }
