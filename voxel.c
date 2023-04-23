@@ -9,17 +9,19 @@
 #define SCALE_FACTOR 100
 
 typedef struct {
-  float x;    // x position
-  float y;    // y position
+  float x;      // x position
+  float y;      // y position
   float height; // height of the camera
-  float zfar; // distance of the camera looking forward
+  float angle;  // angle of the camera (radians, clockwise)
+  float zfar;   // distance of the camera looking forward
 } camera_t;
 
 camera_t camera = { 
-  .x = 512, 
-  .y = 512,
-  .height = 150,
-  .zfar = 400
+  .x = 512.0, 
+  .y = 512.0,
+  .height = 150.0,
+  .angle   = 1.5 * 3.141592, // (= 270 deg)
+  .zfar = 600.0
 };
 
 // buffers for hight map and color map
@@ -28,16 +30,18 @@ uint8_t* colormap = NULL;     // buffer/array to hold color information 1024x102
 
 void process_input() {
   if(keystate(KEY_UP)) {
-    camera.y++;
+    camera.x += cos(camera.angle);
+    camera.y += sin(camera.angle);
   }
   if(keystate(KEY_DOWN)) {
-    camera.y--;
+    camera.x -= cos(camera.angle);
+    camera.y -= sin(camera.angle);
   }
   if(keystate(KEY_LEFT)) {
-    camera.x--;
+    camera.angle -= 0.01;
   }
   if(keystate(KEY_RIGHT)) {
-    camera.x++;
+    camera.angle += 0.01;
   }
   if(keystate(KEY_E)) {
     camera.height++;
@@ -83,12 +87,15 @@ int main(int argc, char* args[]) {
     // process input
     process_input();
 
-    // voxels space magic
-    float plx = -camera.zfar;
-    float ply = camera.zfar; 
+    float sinangle = sin(camera.angle);
+    float cosangle = cos(camera.angle);
 
-    float prx = camera.zfar;
-    float pry = camera.zfar;
+    // voxels space magic
+    float plx = cosangle * camera.zfar + sinangle * camera.zfar;
+    float ply = sinangle * camera.zfar - cosangle * camera.zfar; 
+
+    float prx = cosangle * camera.zfar - sinangle * camera.zfar;
+    float pry = sinangle * camera.zfar + cosangle * camera.zfar;
 
     // loop 320 times to find the 320 rays
     // left to right
